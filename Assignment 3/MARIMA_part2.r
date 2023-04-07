@@ -55,10 +55,13 @@ short.form(Marima_part2_1$ar.estimates, leading=FALSE) # print estimates
 short.form(Marima_part2_1$ma.estimates, leading=FALSE)
 
 sl <- step.slow(Marima_part2_1, Everything)
-Forecasts <-  arma.forecast(t(Everything[1:122,]), nstart=0, nstep=1, marima=sl)
+Forecasts <-  arma.forecast(t(Everything[1:122,]), nstart=0, nstep=122, marima=sl)
 
-
-
+time <- A3Data$X[2:122]
+# pred <- Forecasts$forecasts[2,91:100]
+plot(seq(1,122,1), Forecasts$forecasts[2,])#, type="l", xlab="Time",
+     #ylab="Denmark house prices", main="...")#,
+     #ylim=c(0.0,4.1))
 
 # Using regressor variables
 ar = c(1)
