@@ -1,10 +1,11 @@
 library("forecast")
 library(car)
+library(marima)
 
 par(mfrow=c(1,1))
 
-A3Data <- read.csv("A3Data.csv", head=T)
-A3Data <- A3Data[1:122,]
+A3Data_full <- read.csv("A3Data.csv", head=T)
+A3Data <- A3Data_full[1:122,]
 
 matplot(A3Data[,2:8], type="l")
 legend("topleft", colnames(A3Data[1:122,2:8]),col=seq_len(8),cex=0.8,lty=seq_len(8))
@@ -35,6 +36,7 @@ acf(logdiffedHousePrices$Denmark)
 
 m1 <- arima(x = log(HousePrices$Denmark), order = c(2,1,0), seasonal = c(order=c(0,0,4), seasonal=4))
 tsdiag(m1) ## Still a strong dependence in lag 1
+par(mfrow(c(1,2)))
 pacf(residuals(m1)) # There are more significant lags here than in ACF so trying to add MA(1) part
 qqPlot(residuals(m1))
 m1 # The paramaters
@@ -48,7 +50,7 @@ m2 <- arima(x = log(HousePrices$Denmark), order = c(2,1,1), seasonal = c(order=c
 tsdiag(m2) ## Still a strong dependence in lag 1
 pacf(residuals(m2)) # There are more significant lags here than in ACF so trying to add MA(1) part
 qqPlot(residuals(m2))
-m2 # The paramaters
+m2 # The parameters
 
 plot(1:length(HousePrices$Denmark),residuals(m2))
 sum(residuals(m2) < 0)/length(HousePrices$Denmark)*100
@@ -59,4 +61,14 @@ AIC(m1, m2, m3)
 BIC(m1, m2, m3)
 # And it seems that m1 - (2,1,0) x (0,0,4)_4 performs the best
 summary(m1)
+
+# Plotting tsdiag individually
+par(mfrow=c(1,1))
+plot(residuals(m1), type="h")
+abline(h=0)
+acf(residuals(m1))
+
+test <- do.call("Box.test", list(residuals(m1), lag=1:10, fitdf=0))[3]$p.value
+plot(1:10, test, ylim=c(0,1))
+abline(h=0.05, col="steelblue", lty=2)
 
