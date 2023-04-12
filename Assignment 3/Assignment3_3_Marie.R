@@ -77,8 +77,8 @@ ln_diffed_Everything$InflationRate <- Everything$InflationRate[1:121]
 
 
 
-ar = c(1)
-ma = c(0)
+ar = c(2,1)
+ma = c(1)
 model_structure <- define.model(kvar=7, ar=ar, ma=ma, rem.var=c(1), reg.var=c(6,7), indep=NULL) #
 marima_model <- marima(t(ln_diffed_Everything),
                        ar.pattern=model_structure$ar.pattern, ma.pattern=model_structure$ma.pattern,
@@ -114,6 +114,11 @@ Everything$Sealand_forecast <- unlist(forecast_original[2])
 Everything$MidJutland_forecast <- unlist(forecast_original[3])
 Everything$Rural_forecast <- unlist(forecast_original[4])
 
+everysecond <- function(x){
+  x <- sort(unique(x))
+  x[seq(2, length(x), 2)] <- ""
+  x
+}
 
 ggplot(Everything, aes(time)) + 
   geom_point(aes(y=Capital),col="red") +
