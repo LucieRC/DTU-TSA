@@ -170,9 +170,18 @@ Kmopt$par
 # no matter what I set it to. I cant set it to zero, because the log(0)=-Inf. The lower 
 # bound for observation variance also very much dictates what Sigma_1 becomes. 
 
+Y <- matrix(data$Sal[800:5000],ncol=1)
+K2 <- kalman(Y, A= A, C=C, Sigma.1=Kmopt$par[1], Sigma.2=Kmopt$par[2],
+              V0=Sigma.1, Xhat0=Y[1],n.ahead=1,verbose=TRUE)
 
+### Now zoomin ###
+# Plot the data with the 1 step prediction and prediction intervals 
+plot(Y[1:150],col="black",pch = 16,ylim = c(15,18.7),xlab = "Time",ylab = "Salinity") # #,ylim = c(16.9,18.6)
+lines(K2$pred[1:150], col = "red", lwd = 2)
+matlines(K2$pred[1:150]+sqrt(K2$Sigma.yy.pred[1,1,1:150])%*%cbind(-1.96,1.96),col="red",lty=c(2,2), lwd=2)
 
-
+# Values that defines the final state of the filter
+K2$pred[4202]
 
 
 
