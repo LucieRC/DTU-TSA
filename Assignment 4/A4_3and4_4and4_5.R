@@ -171,19 +171,21 @@ par = c(0.01,0.005)
 
 # Be careful about what you defined Y as last (fx with or without outliers from the kalman filter above.)
 
+Y = matrix(Y[1:800],ncol=1)
+
 my.obj <- function(par){
   Kro <- kalman(Y, A= A, C=C, Sigma.1=par[1], Sigma.2=par[2],
-                V0=Sigma.1, Xhat0=Y[1],n.ahead=1,verbose=TRUE)
+                V0=par[1], Xhat0=Y[1],n.ahead=1,verbose=TRUE)
   nepso <- (Y[-1]-Kro$pred[-c(1, 800+1),1])^2 / Kro$Sigma.yy.pred[-c(1, 800+1)]
-  return(0.5 * sum(nepso + log(Kro$Sigma.yy.pred[-c(1, 800+1)]))) # Maximum likelihood
+  return(0.5 * sum(log(nepso + Kro$Sigma.yy.pred[-c(1, 800+1)]))) # Maximum likelihood
 }
 
-par = c(10,10)
-my.obj(par)
+#par = c(10,10)
+#my.obj(par)
 
-(Kmopt <- optim(c(0.01,0.01), my.obj, method = "L-BFGS-B", lower=c(0.0001,0.00000001),upper=c(10,10)))
-
+(Kmopt <- optim(c(0.01,0.01), my.obj, method = "L-BFGS-B", lower=c(0.0001,0.000001)))
 Kmopt$par
+
 
 # In my implementation the observation variance keeps converging to the lower bound, 
 # no matter what I set it to. I cant set it to zero, because the log(0)=-Inf. The lower 
