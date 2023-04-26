@@ -72,7 +72,10 @@ for(tt in (1):dim.Y[1]){
   
   # 4.4: remove outliers
   # Make a list of outlier indexes
-  #if (!is.na(Y[tt,]) & (Y[tt,]<X.hat-6*sqrt(Sigma.yy) | Y[tt,]>X.hat+6*sqrt(Sigma.yy))){outliers = append(outliers,c(tt))}
+  if (!is.na(Y[tt,]) & (Y[tt,]<X.hat-6*sqrt(Sigma.yy) | Y[tt,]>X.hat+6*sqrt(Sigma.yy))){
+    outliers = append(outliers,c(tt))
+    Y[tt,]=NA
+    }
   #if (is.na(Y[tt,]) | Y[tt,]<X.hat-6*sqrt(Sigma.yy)){Y[tt,]=NA}
   #if (is.na(Y[tt,]) | Y[tt,]>X.hat+6*sqrt(Sigma.yy)){Y[tt,]=NA}
   
@@ -143,14 +146,30 @@ matlines(out$pred[800:950,1]+sqrt(Sigma.yy.pred[1,1,800:950])%*%cbind(-1.96,1.96
 # Plot the standardized one step prediction errors
 plot((Y[800:950]-out$pred[800:950])/(sqrt(Sigma.yy.pred[1,1,800:950])),pch = 20)
 
+
+# Look into outliers
+p = 10
+data$Sal[(outliers[p]-2):(outliers[p]+2)]
+
+p = 1
+Sigma.yy.pred[(outliers[p]-2):(outliers[p]+2)]*6
+
 ######################################################################################################
 ############################################## 4.5 ###################################################
 ######################################################################################################
-Y <- matrix(data$Sal[1:800],ncol=1)
+
+# What would be a sensible observation variance
+
+Sigma_xx = Sigma.xx.pred[1,1,1:5001]
+Sigma_yy = Sigma.yy.pred[1,1,1:5000]
+# The very first value is NA.... 
+min(Sigma_yy[2:5000],rm.na=TRUE)
 
 source("Time Series Analysis/Day 11/kalman.R")
 
 par = c(0.01,0.005)
+
+# Be careful about what you defined Y as last (fx with or without outliers from the kalman filter above.)
 
 my.obj <- function(par){
   Kro <- kalman(Y, A= A, C=C, Sigma.1=par[1], Sigma.2=par[2],
@@ -162,7 +181,7 @@ my.obj <- function(par){
 par = c(10,10)
 my.obj(par)
 
-(Kmopt <- optim(c(0.01,0.01), my.obj, method = "L-BFGS-B", lower=c(0.0001,0.00000001)))
+(Kmopt <- optim(c(0.01,0.01), my.obj, method = "L-BFGS-B", lower=c(0.0001,0.00000001),upper=c(10,10)))
 
 Kmopt$par
 
@@ -171,6 +190,7 @@ Kmopt$par
 # bound for observation variance also very much dictates what Sigma_1 becomes. 
 
 Y <- matrix(data$Sal[800:5000],ncol=1)
+Y[15] <- NA
 K2 <- kalman(Y, A= A, C=C, Sigma.1=Kmopt$par[1], Sigma.2=Kmopt$par[2],
               V0=Sigma.1, Xhat0=Y[1],n.ahead=1,verbose=TRUE)
 
@@ -181,7 +201,7 @@ lines(K2$pred[1:150], col = "red", lwd = 2)
 matlines(K2$pred[1:150]+sqrt(K2$Sigma.yy.pred[1,1,1:150])%*%cbind(-1.96,1.96),col="red",lty=c(2,2), lwd=2)
 
 # Values that defines the final state of the filter
-K2$pred[4202]
+K2$pred[4200]
 
 
 
